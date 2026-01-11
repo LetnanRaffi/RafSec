@@ -146,18 +146,18 @@ except:
     pass
 
 # ============================================================
-# PREMIUM THEME - "CLEAN NAVY" PALETTE
+# PREMIUM THEME - "CLEAN LIGHT" PALETTE
 # ============================================================
-ctk.set_appearance_mode("Dark")
-ctk.set_default_color_theme("dark-blue")
+ctk.set_appearance_mode("Light")
+ctk.set_default_color_theme("blue")
 
 THEME = {
-    # Backgrounds
-    'bg_deep': '#0f172a',       # Deep navy (main)
-    'bg_sidebar': '#1e293b',    # Sidebar
-    'bg_card': '#334155',       # Cards
-    'bg_elevated': '#475569',   # Elevated
-    'bg_input': '#1e293b',      # Input fields
+    # Backgrounds (Light Mode)
+    'bg_deep': '#f8fafc',       # Very light grey (main)
+    'bg_sidebar': '#ffffff',    # Pure white sidebar
+    'bg_card': '#ffffff',       # White cards
+    'bg_elevated': '#f1f5f9',   # Slightly grey elevated
+    'bg_input': '#f1f5f9',      # Input fields
     
     # Accents
     'accent_primary': '#3b82f6',  # Bright blue
@@ -166,14 +166,15 @@ THEME = {
     'accent_warning': '#f59e0b',  # Amber
     'accent_danger': '#ef4444',   # Red
     
-    # Text
-    'text_primary': '#f8fafc',
-    'text_secondary': '#94a3b8',
-    'text_muted': '#64748b',
+    # Text (Dark on Light)
+    'text_primary': '#1e293b',    # Dark slate grey
+    'text_secondary': '#64748b',  # Medium grey
+    'text_muted': '#94a3b8',      # Light grey
     
     # Special
     'glow': '#3b82f6',
-    'border': '#334155',
+    'border': '#e2e8f0',          # Light border
+    'shadow': '#cbd5e1',          # Shadow color
 }
 
 # Fonts
@@ -225,6 +226,7 @@ class RafSecApp(ctk.CTk):
         self.frames['dashboard'] = DashboardFrame(self)
         self.frames['scanner'] = ScannerFrame(self)
         self.frames['network'] = NetworkFrame(self)
+        self.frames['quarantine'] = QuarantineFrame(self)
         self.frames['vault'] = VaultFrame(self)
         self.frames['tools'] = ToolsFrame(self)
         self.frames['settings'] = SettingsFrame(self)
@@ -356,6 +358,7 @@ class Sidebar(ctk.CTkFrame):
             ('dashboard', '⬡', 'Dashboard'),
             ('scanner', '⎔', 'Scanner'),
             ('network', '◎', 'Network'),
+            ('quarantine', '⬣', 'Quarantine'),
             ('vault', '⬢', 'Vault'),
             ('tools', '⚡', 'Tools'),
             ('settings', '⚙', 'Settings'),
@@ -512,14 +515,20 @@ class DashboardFrame(ctk.CTkFrame):
         self.stat_labels['scanned'].configure(text=str(Stats.files_scanned))
         self.stat_labels['threats'].configure(text=str(Stats.threats_found))
     
-    def set_status(self, secure: bool, detail: str = ""):
-        """Update status display."""
-        if secure:
-            self.status_icon.configure(text="◆", text_color=THEME['accent_success'])
+    def set_status(self, score: float, detail: str = ""):
+        """Update status display based on score thresholds."""
+        if score < 40:
+            # GREEN - Clean/Secure
+            self.status_icon.configure(text="✓", text_color=THEME['accent_success'])
             self.status_text.configure(text="SYSTEM SECURE", text_color=THEME['accent_success'])
+        elif score < 70:
+            # YELLOW - Suspicious
+            self.status_icon.configure(text="⚠", text_color=THEME['accent_warning'])
+            self.status_text.configure(text="SUSPICIOUS ACTIVITY", text_color=THEME['accent_warning'])
         else:
-            self.status_icon.configure(text="⚠", text_color=THEME['accent_danger'])
-            self.status_text.configure(text="THREAT DETECTED", text_color=THEME['accent_danger'])
+            # RED - Threat
+            self.status_icon.configure(text="⛔", text_color=THEME['accent_danger'])
+            self.status_text.configure(text="THREAT DETECTED!", text_color=THEME['accent_danger'])
         
         if detail:
             self.status_detail.configure(text=detail)
@@ -753,7 +762,7 @@ class ScannerFrame(ctk.CTkFrame):
                     else:
                         self._log("  ✓ Not found in VirusTotal")
                 else:
-                    self._log("  ⚠ No API key configured")
+                    self._log("  [Cloud] Info: Scan skipped (API Key not configured in Settings)")
             
             # Final
             self._progress(1.0)
@@ -792,15 +801,21 @@ class ScannerFrame(ctk.CTkFrame):
             
             if result:
                 Stats.files_scanned += 1
-                if result.threat_level.value in ['HIGH', 'CRITICAL']:
+                score = result.suspicion_score
+                
+                # Update threat count based on score thresholds
+                if score >= 70:
                     Stats.threats_found += 1
                 
-                secure = result.threat_level.value in ['CLEAN', 'LOW']
-                self.parent.frames['dashboard'].set_status(secure, f"Score: {result.suspicion_score:.1f}")
+                # Update dashboard with score
+                self.parent.frames['dashboard'].set_status(score, f"Score: {score:.1f}")
                 self.parent.frames['dashboard'].refresh()
                 
-                if secure:
+                # Voice feedback based on score
+                if score < 40:
                     VoiceAlert.speak("Scan complete. System is secure.")
+                elif score < 70:
+                    VoiceAlert.speak("Scan complete. Suspicious activity detected.")
         
         self.after(0, update)
     
@@ -899,6 +914,9 @@ class NetworkFrame(ctk.CTkFrame):
         
         connections = NetworkMonitor.get_connections()
         
+        # Filter out Unknown processes and PID 0
+        connections = [c for c in connections if c.process_name != "Unknown" and c.pid > 0]
+        
         if not connections:
             lbl = ctk.CTkLabel(
                 self.scroll,
@@ -988,6 +1006,228 @@ class NetworkFrame(ctk.CTkFrame):
                 self._refresh()
             else:
                 messagebox.showerror("Error", "Failed to kill process")
+
+
+# ============================================================
+# QUARANTINE FRAME
+# ============================================================
+class QuarantineFrame(ctk.CTkFrame):
+    """Quarantine manager for isolated files."""
+    
+    def __init__(self, parent):
+        super().__init__(parent, fg_color="transparent")
+        self.parent = parent
+        self.selected_file = None
+        
+        # Import quarantine manager
+        try:
+            from engine.quarantine import QuarantineManager
+            self.quarantine = QuarantineManager()
+        except:
+            self.quarantine = None
+        
+        self._create_widgets()
+    
+    def _create_widgets(self):
+        # Header
+        header = ctk.CTkFrame(self, fg_color="transparent")
+        header.pack(fill='x', pady=(0, 15))
+        header.grid_columnconfigure(0, weight=1)
+        
+        ctk.CTkLabel(
+            header,
+            text="Quarantine",
+            font=ctk.CTkFont(family=FONT_FAMILY, size=28, weight="bold"),
+            text_color=THEME['text_primary']
+        ).grid(row=0, column=0, sticky="w")
+        
+        ctk.CTkButton(
+            header,
+            text="⟳ Refresh",
+            font=ctk.CTkFont(size=12),
+            width=100,
+            height=35,
+            corner_radius=10,
+            fg_color=THEME['accent_primary'],
+            command=self._refresh
+        ).grid(row=0, column=1)
+        
+        # Info card
+        info_card = ctk.CTkFrame(self, fg_color=THEME['bg_card'], corner_radius=12)
+        info_card.pack(fill='x', pady=(0, 15))
+        
+        ctk.CTkLabel(
+            info_card,
+            text="🔒 Isolated files are stored safely here. They cannot harm your system.",
+            font=ctk.CTkFont(size=11),
+            text_color=THEME['text_secondary']
+        ).pack(padx=20, pady=15)
+        
+        # Files list
+        self.scroll = ctk.CTkScrollableFrame(
+            self,
+            fg_color=THEME['bg_card'],
+            corner_radius=12
+        )
+        self.scroll.pack(fill='both', expand=True, pady=(0, 15))
+        
+        self.file_frames = []
+        
+        # Action buttons
+        btn_frame = ctk.CTkFrame(self, fg_color="transparent")
+        btn_frame.pack(fill='x')
+        
+        self.restore_btn = ctk.CTkButton(
+            btn_frame,
+            text="Restore Selected",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            height=40,
+            corner_radius=10,
+            fg_color=THEME['accent_success'],
+            state="disabled",
+            command=self._restore_file
+        )
+        self.restore_btn.pack(side='left', padx=(0, 10))
+        
+        self.delete_btn = ctk.CTkButton(
+            btn_frame,
+            text="Delete Forever",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            height=40,
+            corner_radius=10,
+            fg_color=THEME['accent_danger'],
+            state="disabled",
+            command=self._delete_file
+        )
+        self.delete_btn.pack(side='left')
+        
+        self._refresh()
+    
+    def _refresh(self):
+        """Refresh quarantine list."""
+        # Clear existing
+        for frame in self.file_frames:
+            frame.destroy()
+        self.file_frames = []
+        self.selected_file = None
+        self.restore_btn.configure(state="disabled")
+        self.delete_btn.configure(state="disabled")
+        
+        if not self.quarantine:
+            lbl = ctk.CTkLabel(
+                self.scroll,
+                text="Quarantine manager not available",
+                text_color=THEME['text_muted']
+            )
+            lbl.pack(pady=30)
+            self.file_frames.append(lbl)
+            return
+        
+        files = self.quarantine.list_quarantined()
+        
+        if not files:
+            lbl = ctk.CTkLabel(
+                self.scroll,
+                text="✓ Quarantine is empty",
+                text_color=THEME['accent_success']
+            )
+            lbl.pack(pady=30)
+            self.file_frames.append(lbl)
+            return
+        
+        for f in files:
+            row = ctk.CTkFrame(self.scroll, fg_color=THEME['bg_elevated'], corner_radius=8, height=50)
+            row.pack(fill='x', padx=15, pady=3)
+            row.pack_propagate(False)
+            
+            inner = ctk.CTkFrame(row, fg_color="transparent")
+            inner.pack(fill='both', expand=True, padx=15, pady=10)
+            
+            # Selection radio
+            var = ctk.StringVar()
+            rb = ctk.CTkRadioButton(
+                inner,
+                text="",
+                variable=var,
+                value=f['name'],
+                fg_color=THEME['accent_primary'],
+                command=lambda fn=f['name']: self._select_file(fn)
+            )
+            rb.pack(side='left')
+            
+            # File info
+            ctk.CTkLabel(
+                inner,
+                text=f['original_name'][:30],
+                font=ctk.CTkFont(family=FONT_MONO, size=11, weight="bold"),
+                text_color=THEME['text_primary']
+            ).pack(side='left', padx=(10, 20))
+            
+            # Date
+            ctk.CTkLabel(
+                inner,
+                text=f['date'],
+                font=ctk.CTkFont(size=10),
+                text_color=THEME['text_muted']
+            ).pack(side='left')
+            
+            # Size
+            size_str = f"{f['size']/1024:.1f} KB" if f['size'] < 1024*1024 else f"{f['size']/(1024*1024):.1f} MB"
+            ctk.CTkLabel(
+                inner,
+                text=size_str,
+                font=ctk.CTkFont(size=10),
+                text_color=THEME['text_secondary']
+            ).pack(side='right')
+            
+            self.file_frames.append(row)
+    
+    def _select_file(self, filename):
+        """Handle file selection."""
+        self.selected_file = filename
+        self.restore_btn.configure(state="normal")
+        self.delete_btn.configure(state="normal")
+    
+    def _restore_file(self):
+        """Restore selected file."""
+        if not self.selected_file or not self.quarantine:
+            return
+        
+        try:
+            from utils.config import ConfigManager
+            config = ConfigManager()
+        except:
+            config = None
+        
+        success, msg = self.quarantine.restore_file(self.selected_file, config)
+        
+        if success:
+            messagebox.showinfo("Restored", msg)
+            self._refresh()
+        else:
+            messagebox.showerror("Error", msg)
+    
+    def _delete_file(self):
+        """Permanently delete selected file."""
+        if not self.selected_file or not self.quarantine:
+            return
+        
+        if not messagebox.askyesno("⚠ Confirm", f"Permanently delete this file?\n\nThis cannot be undone!"):
+            return
+        
+        try:
+            from utils.config import ConfigManager
+            config = ConfigManager()
+        except:
+            config = None
+        
+        success, msg = self.quarantine.delete_permanently(self.selected_file, config)
+        
+        if success:
+            messagebox.showinfo("Deleted", msg)
+            self._refresh()
+        else:
+            messagebox.showerror("Error", msg)
 
 
 # ============================================================
