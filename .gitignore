@@ -19,6 +19,7 @@ venv/
 env/
 .venv/
 .env/
+.env
 
 # IDE / Editor
 .idea/
@@ -36,6 +37,8 @@ desktop.ini
 config.json
 whitelist.json
 quarantine/
+threat_intel/
+reports/
 *.rafenc
 ransomware_alert.log
 

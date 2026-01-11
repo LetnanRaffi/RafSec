@@ -4,75 +4,88 @@
   <br>
   RafSec Total Security
   <br>
+  <small>Open Source EDR Platform</small>
 </h1>
 
-<h4 align="center">A Complete Security Suite for Windows & Linux</h4>
-
 <p align="center">
-  <a href="#features">Features</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#usage">Usage</a> •
-  <a href="#building">Building</a> •
-  <a href="#disclaimer">Disclaimer</a>
+  <img src="https://img.shields.io/badge/Python-3.10+-3776ab?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-blue?style=for-the-badge" alt="Platform">
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
+  <img src="https://img.shields.io/badge/Build-Passing-brightgreen?style=for-the-badge" alt="Build">
+  <img src="https://img.shields.io/badge/Version-4.0.0-orange?style=for-the-badge" alt="Version">
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.8+-3776ab?style=flat-square&logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-blue?style=flat-square" alt="Platform">
-  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License">
-  <img src="https://img.shields.io/badge/Version-3.0.0-orange?style=flat-square" alt="Version">
+  <b>Enterprise-grade endpoint protection with behavioral analysis, memory forensics, and real-time threat detection.</b>
 </p>
 
 ---
 
-## 🛡️ Overview
+## 🎯 Overview
 
-**RafSec Total Security** is a comprehensive security suite that combines static malware analysis, real-time protection, and system utilities into one powerful application.
+**RafSec Total Security** is a comprehensive Endpoint Detection & Response (EDR) platform that combines:
 
-Built with Python and CustomTkinter, it features a premium dark-themed UI and professional-grade security tools.
+- 🔬 **Static Analysis** - PE parsing, YARA signatures, ML classification
+- 🧠 **Behavioral Analysis** - Real-time detection of ransomware & process injection
+- 💾 **Memory Forensics** - Scan running processes for fileless malware
+- 🌐 **Network Security** - Connection monitoring & ARP spoofing detection
+- 🛡️ **System Hardening** - Vulnerability scanning & privacy controls
+
+Built with Python and CustomTkinter for a modern, cross-platform experience.
+
+---
 
 ## ✨ Features
 
-### 🔍 Malware Scanner
-- **YARA Signature Scanning** - Industry-standard pattern matching
-- **Heuristic Analysis** - Entropy, imports, sections analysis
-- **EICAR Detection** - Standard antivirus test file detection
-- **Machine Learning** - Random Forest threat classification
+### 🔍 Malware Detection
+| Feature | Description |
+|---------|-------------|
+| **YARA Engine** | 15+ rules for ransomware, trojans, keyloggers |
+| **ML Classification** | Random Forest threat scoring |
+| **EICAR Detection** | Standard AV test file support |
+| **VirusTotal Cloud** | Hash lookup against 70+ engines |
 
-### ☁️ Cloud Intelligence
-- **VirusTotal Integration** - Check files against 70+ AV engines
-- **Hash Lookup** - MD5, SHA256, Imphash verification
+### 🧠 Behavioral Analysis (EDR)
+| Feature | Description |
+|---------|-------------|
+| **Ransomware Detector** | Blocks rapid file encryption (5+ files/2 sec) |
+| **Process Injection Monitor** | Detects macro attacks (Word→PowerShell) |
+| **Memory Scanner** | YARA scanning of process memory |
+| **Rootkit Hunter** | Detect hidden processes |
 
-### 📡 Network Monitor
-- **Active Connections** - View all network activity
-- **Process Identification** - See which apps are connecting
-- **Kill Process** - Terminate suspicious connections
-- **Suspicious Port Detection** - Flag known malware ports
+### 🌐 Network Security
+| Feature | Description |
+|---------|-------------|
+| **Connection Monitor** | View all active network connections |
+| **WiFi Guard** | Detect ARP spoofing/MITM attacks |
+| **Threat Intel Sync** | Download malicious IP feeds |
+| **Kill Process** | Terminate suspicious connections |
 
-### 🔐 File Vault
-- **AES-256 Encryption** - Military-grade file protection
-- **Password Protection** - PBKDF2 key derivation
-- **Secure Storage** - Encrypted .rafenc format
+### 🔐 Privacy & Hardening
+| Feature | Description |
+|---------|-------------|
+| **Webcam Blocker** | Disable camera at system level |
+| **Microphone Blocker** | Disable mic at system level |
+| **RDP Disable** | Block Remote Desktop |
+| **SMBv1 Disable** | Protect against WannaCry |
+| **Telemetry Disable** | Stop Windows data collection |
 
-### 🛑 Ransomware Protection
-- **Honeypot Files** - Decoy files to detect ransomware early
-- **Real-time Monitoring** - Instant alert on tampering
+### 🛠️ Tools
+| Feature | Description |
+|---------|-------------|
+| **File Vault** | AES-256 encryption/decryption |
+| **File Shredder** | Secure multi-pass deletion |
+| **System Cleaner** | Remove temp/cache files |
+| **USB Vaccine** | Immunize against AutoRun |
+| **Stego Hunter** | Detect hidden image data |
+| **PDF Reports** | Professional incident reports |
 
-### 🧹 System Tools
-- **Junk Cleaner** - Remove temp files and caches
-- **File Shredder** - Secure deletion (3-pass overwrite)
-- **Quarantine Manager** - Isolate suspicious files
-
-### 🎙️ Additional Features
-- **Voice Alerts** - Audio notifications for threats
-- **System Tray** - Background operation
-- **Live Protection** - Monitor Downloads folder
-- **Whitelist** - Exclude trusted files
+---
 
 ## 📦 Installation
 
 ### Prerequisites
-- Python 3.8 or higher
+- Python 3.10 or higher
 - pip package manager
 
 ### Quick Install
@@ -89,17 +102,23 @@ pip install -r requirements.txt
 python gui.py
 ```
 
-### Windows Users
+### Platform-Specific Notes
+
+**Windows:**
 ```batch
 pip install -r requirements.txt
 python gui.py
 ```
 
-### Linux Users
+**Linux:**
 ```bash
 pip3 install -r requirements.txt
 python3 gui.py
 ```
+
+> **Note:** Some features (Privacy Shield, System Hardener) require Administrator/root privileges.
+
+---
 
 ## 🚀 Usage
 
@@ -113,102 +132,83 @@ python gui.py
 # Basic scan
 python main.py suspicious.exe
 
-# Full scan with ML
+# Full analysis
 python main.py malware.exe --full
 
 # JSON output
 python main.py sample.exe --json
 ```
 
-## 🔧 Configuration
+---
 
-### VirusTotal API
-1. Get a free API key at [virustotal.com](https://www.virustotal.com)
-2. Go to Settings → Enter API Key → Save
-
-### Settings are auto-saved to `config.json`
-
-## 🏗️ Building
-
-### Create Standalone Executable
-
-**Windows:**
-```batch
-build_windows.bat
-```
-
-**Linux:**
-```bash
-chmod +x build_linux.sh
-./build_linux.sh
-```
-
-Output: `dist/RafSec.exe` (Windows) or `dist/RafSec` (Linux)
-
-### Manual Build
-```bash
-pyinstaller --noconfirm --onefile --windowed \
-    --name "RafSec" \
-    --add-data "engine:engine" \
-    --add-data "utils:utils" \
-    --add-data "rules:rules" \
-    gui.py
-```
-
-## 📁 Project Structure
+## 🏗️ Architecture
 
 ```
 RafSec/
-├── gui.py              # Main GUI Application
-├── gui_splash.py       # Splash Screen
-├── main.py             # CLI Interface
-├── requirements.txt    # Dependencies
-├── LICENSE             # MIT License
+├── gui.py                  # Main GUI Application
+├── gui_splash.py           # Splash Screen
+├── main.py                 # CLI Interface
 │
-├── engine/             # Core Security Engine
-│   ├── analyzer.py     # Heuristic + YARA Analysis
-│   ├── extractor.py    # PE Feature Extraction
-│   ├── cloud_scanner.py# VirusTotal Integration
-│   ├── net_monitor.py  # Network Monitor
-│   ├── vault.py        # File Encryption
-│   ├── quarantine.py   # Quarantine Manager
-│   ├── honeypot.py     # Ransomware Trap
-│   ├── cleaner.py      # System Cleaner
-│   ├── shredder.py     # Secure Delete
-│   ├── firewall.py     # Firewall Control
-│   └── ml_model.py     # ML Classification
+├── engine/                 # Core Security Engine
+│   ├── analyzer.py         # Heuristic + YARA Analysis
+│   ├── extractor.py        # PE Feature Extraction
+│   ├── ml_model.py         # ML Classification
+│   ├── behavior_monitor.py # Real-time Behavioral Detection
+│   ├── memory_scanner.py   # Process Memory Scanning
+│   ├── rootkit_hunter.py   # Hidden Process Detection
+│   ├── threat_intel.py     # Threat Feed Sync
+│   ├── cloud_scanner.py    # VirusTotal Integration
+│   ├── net_monitor.py      # Network Connections
+│   ├── wifi_guard.py       # ARP Spoofing Detection
+│   ├── vault.py            # File Encryption
+│   ├── quarantine.py       # Threat Isolation
+│   ├── honeypot.py         # Ransomware Trap
+│   ├── cleaner.py          # System Cleanup
+│   ├── shredder.py         # Secure Deletion
+│   ├── firewall.py         # Firewall Control
+│   ├── privacy.py          # Hardware Privacy
+│   ├── hardener.py         # System Hardening
+│   ├── stego_hunter.py     # Steganography
+│   └── usb_vaccine.py      # AutoRun Protection
 │
-├── utils/              # Utilities
-│   ├── config.py       # Settings Manager
-│   ├── voice.py        # Voice Alerts
-│   ├── whitelist.py    # Exclusions
-│   └── helpers.py      # Hash/Validation
+├── utils/                  # Utilities
+│   ├── config.py           # Settings Manager
+│   ├── voice.py            # Voice Alerts
+│   ├── whitelist.py        # Exclusions
+│   ├── helpers.py          # Hash/Validation
+│   └── reporter.py         # PDF Reports
 │
-├── rules/              # YARA Rules
-│   └── malware_index.yar
+├── rules/                  # YARA Rules
+│   ├── malware_index.yar   # File-based rules
+│   └── memory_threats.yar  # In-memory rules
 │
-└── assets/             # Icons & Images
+└── assets/                 # Icons & Images
     └── logo.png
 ```
+
+---
 
 ## ⚠️ Disclaimer
 
 > **THIS SOFTWARE IS PROVIDED FOR EDUCATIONAL AND RESEARCH PURPOSES ONLY.**
 >
 > RafSec is designed to demonstrate:
-> - Static malware analysis techniques
-> - PE file format parsing
-> - YARA signature matching
-> - Machine learning for security
-> - Modern Python GUI development
+> - Endpoint Detection & Response (EDR) concepts
+> - Static and behavioral malware analysis
+> - Memory forensics techniques
+> - Network security monitoring
+> - System hardening practices
 >
 > **IMPORTANT:**
-> - This is NOT a replacement for professional antivirus software
-> - Do NOT rely solely on this tool for malware protection
-> - Always use proper sandboxing when analyzing suspicious files
+> - This is NOT a replacement for enterprise security solutions
+> - Do NOT rely solely on this tool for production protection
+> - Always use proper sandboxing when analyzing malware
+> - Some features require Administrator/root privileges
 > - The authors are not responsible for any misuse or damage
 >
-> Use at your own risk. For production environments, use certified security solutions.
+> **Use at your own risk.** For production environments, use certified security solutions like CrowdStrike, SentinelOne, or Microsoft Defender.
+
+---
 
 ## 🤝 Contributing
 
@@ -216,13 +216,17 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+3. Commit your Changes (`git commit -m 'Add AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
+---
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
 
 ## 👤 Author
 
@@ -233,7 +237,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <p align="center">
-  Made with ❤️ by RafSec Team
-  <br>
   <b>Stay Safe, Stay Secure</b> 🛡️
+  <br><br>
+  Made with ❤️ by RafSec Team
 </p>

@@ -1,4 +1,4 @@
-# RafSec Security Suite - Dependencies
+# RafSec Total Security - Dependencies
 # ======================================
 # Install: pip install -r requirements.txt
 
@@ -36,6 +36,9 @@ pyttsx3>=2.90
 
 # Notifications
 plyer>=2.1.0
+
+# PDF Reports
+fpdf>=1.7.2
 
 # Build Tools (optional)
 pyinstaller>=6.0.0
