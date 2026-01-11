@@ -40,5 +40,9 @@ plyer>=2.1.0
 # PDF Reports
 fpdf>=1.7.2
 
+# EDR Core (Windows only)
+WMI>=1.5.1; sys_platform == 'win32'
+pywin32>=306; sys_platform == 'win32'
+
 # Build Tools (optional)
 pyinstaller>=6.0.0
