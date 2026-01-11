@@ -124,13 +124,26 @@ except:
         @staticmethod
         def validate_for_analysis(path): return (True, "")
 
-# System tray
+# System tray & Images
 try:
     import pystray
     from PIL import Image
     TRAY_AVAILABLE = True
 except:
     TRAY_AVAILABLE = False
+
+# Load logo image
+LOGO_IMAGE = None
+try:
+    logo_path = os.path.join(BASE_DIR, 'assets', 'logo.png')
+    if os.path.exists(logo_path):
+        LOGO_IMAGE = ctk.CTkImage(
+            light_image=Image.open(logo_path),
+            dark_image=Image.open(logo_path),
+            size=(80, 80)
+        )
+except:
+    pass
 
 # ============================================================
 # PREMIUM THEME - "CLEAN NAVY" PALETTE
@@ -306,12 +319,20 @@ class Sidebar(ctk.CTkFrame):
         logo_frame = ctk.CTkFrame(self, fg_color="transparent")
         logo_frame.pack(pady=(30, 20), padx=20)
         
-        ctk.CTkLabel(
-            logo_frame,
-            text="◆",
-            font=ctk.CTkFont(size=40, weight="bold"),
-            text_color=THEME['accent_primary']
-        ).pack()
+        # Use actual logo image if available
+        if LOGO_IMAGE:
+            ctk.CTkLabel(
+                logo_frame,
+                text="",
+                image=LOGO_IMAGE
+            ).pack()
+        else:
+            ctk.CTkLabel(
+                logo_frame,
+                text="◆",
+                font=ctk.CTkFont(size=40, weight="bold"),
+                text_color=THEME['accent_primary']
+            ).pack()
         
         ctk.CTkLabel(
             logo_frame,
