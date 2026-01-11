@@ -452,6 +452,58 @@ class DashboardFrame(ctk.CTkFrame):
         )
         self.status_detail.pack()
         
+        # Protection toggles card
+        protect_card = ctk.CTkFrame(self, fg_color=THEME['bg_card'], corner_radius=12)
+        protect_card.pack(fill='x', pady=(20, 20))
+        
+        protect_inner = ctk.CTkFrame(protect_card, fg_color="transparent")
+        protect_inner.pack(fill='x', padx=25, pady=15)
+        protect_inner.grid_columnconfigure((0, 1, 2, 3), weight=1)
+        
+        # Real-Time Protection toggle
+        ctk.CTkLabel(
+            protect_inner,
+            text="🛡️ Real-Time Protection",
+            font=ctk.CTkFont(family=FONT_FAMILY, size=12, weight="bold"),
+            text_color=THEME['text_primary']
+        ).grid(row=0, column=0, sticky="w")
+        
+        self.realtime_var = ctk.BooleanVar(value=False)
+        self.realtime_toggle = ctk.CTkSwitch(
+            protect_inner,
+            text="",
+            variable=self.realtime_var,
+            onvalue=True,
+            offvalue=False,
+            fg_color=THEME['accent_success'],
+            command=self._toggle_realtime
+        )
+        self.realtime_toggle.grid(row=0, column=1, sticky="w", padx=(10, 40))
+        
+        # Startup Monitor toggle
+        ctk.CTkLabel(
+            protect_inner,
+            text="🔒 Startup Monitor",
+            font=ctk.CTkFont(family=FONT_FAMILY, size=12, weight="bold"),
+            text_color=THEME['text_primary']
+        ).grid(row=0, column=2, sticky="w")
+        
+        self.startup_var = ctk.BooleanVar(value=False)
+        self.startup_toggle = ctk.CTkSwitch(
+            protect_inner,
+            text="",
+            variable=self.startup_var,
+            onvalue=True,
+            offvalue=False,
+            fg_color=THEME['accent_success'],
+            command=self._toggle_startup
+        )
+        self.startup_toggle.grid(row=0, column=3, sticky="w")
+        
+        # Initialize guards
+        self.realtime_guard = None
+        self.persistence_monitor = None
+        
         # Quick actions row
         actions = ctk.CTkFrame(self, fg_color="transparent")
         actions.pack(fill='x', pady=(0, 20))
@@ -532,6 +584,79 @@ class DashboardFrame(ctk.CTkFrame):
         
         if detail:
             self.status_detail.configure(text=detail)
+    
+    def _toggle_realtime(self):
+        """Toggle real-time protection."""
+        try:
+            from engine.realtime_guard import RealTimeGuard
+            
+            if self.realtime_var.get():
+                # Start protection
+                if self.realtime_guard is None:
+                    self.realtime_guard = RealTimeGuard(
+                        threat_callback=self._on_realtime_threat
+                    )
+                
+                if self.realtime_guard.start():
+                    self.status_detail.configure(text="Real-time protection active")
+                else:
+                    self.realtime_var.set(False)
+                    messagebox.showerror("Error", "Failed to start real-time protection")
+            else:
+                # Stop protection
+                if self.realtime_guard:
+                    self.realtime_guard.stop()
+                self.status_detail.configure(text="All systems operational")
+                
+        except ImportError:
+            self.realtime_var.set(False)
+            messagebox.showerror("Error", "Real-time guard module not available")
+    
+    def _on_realtime_threat(self, path: str, score: float, threat_name: str):
+        """Handle threat detected by real-time guard."""
+        self.set_status(score, f"Threat blocked: {os.path.basename(path)}")
+        Stats.threats_found += 1
+        self.refresh()
+    
+    def _toggle_startup(self):
+        """Toggle startup monitor."""
+        try:
+            from engine.persistence import PersistenceMonitor
+            
+            if self.startup_var.get():
+                # Start monitoring
+                if self.persistence_monitor is None:
+                    self.persistence_monitor = PersistenceMonitor(
+                        alert_callback=self._on_startup_alert
+                    )
+                
+                self.persistence_monitor.start_monitoring(interval=60)
+                self.status_detail.configure(text="Startup monitoring active")
+            else:
+                # Stop monitoring
+                if self.persistence_monitor:
+                    self.persistence_monitor.stop_monitoring()
+                self.status_detail.configure(text="All systems operational")
+                
+        except ImportError:
+            self.startup_var.set(False)
+            messagebox.showerror("Error", "Persistence monitor not available")
+    
+    def _on_startup_alert(self, name: str, value: str):
+        """Handle new startup entry detected."""
+        try:
+            from plyer import notification
+            notification.notify(
+                title="⚠️ New Startup Item Detected!",
+                message=f"{name}\n{value[:50]}",
+                app_name="RafSec",
+                timeout=15
+            )
+        except:
+            pass
+        
+        # Update status
+        self.after(0, lambda: self.set_status(50, f"New startup: {name}"))
 
 
 # ============================================================
