@@ -1,0 +1,51 @@
+# RafSec - Git Ignore
+# ====================
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Distribution / Build
+build/
+dist/
+*.spec
+*.egg-info/
+*.egg
+
+# Virtual Environment
+venv/
+env/
+.venv/
+.env/
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Project Specific - SECRETS & USER DATA
+config.json
+whitelist.json
+quarantine/
+*.rafenc
+ransomware_alert.log
+
+# Trained Models (large files)
+engine/models/*.pkl
+engine/models/*.joblib
+
+# Test files
+test_*.txt
+test_*.exe
+
+# Logs
+*.log
